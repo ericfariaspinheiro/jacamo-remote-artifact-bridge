@@ -1,0 +1,8 @@
+mas remote_artifacts_jacamo {
+
+    agent echo_agent
+
+    workspace main {
+        artifact echo: env.EchoProxyArtifact
+    }
+}

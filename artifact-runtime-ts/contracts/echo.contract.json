@@ -1,0 +1,22 @@
+{
+  "name": "EchoArtifact",
+  "runtime": "remote",
+  "transport": "websocket",
+  "operations": [
+    {
+      "name": "echo",
+      "args": [
+        {
+          "name": "message",
+          "type": "string"
+        }
+      ],
+      "signals": [
+        {
+          "name": "echo_result",
+          "args": ["string"]
+        }
+      ]
+    }
+  ]
+}

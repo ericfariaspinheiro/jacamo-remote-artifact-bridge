@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Node / TypeScript
+artifact-runtime-ts/node_modules/
+artifact-runtime-ts/dist/
+artifact-runtime-ts/.env
+
+# Gradle / JaCaMo
+**/.gradle/
+**/build/
+**/bin/
+**/log/
+
+# IDE
+.vscode/
+.idea/
+
+# Secrets
+.env
+*.env
