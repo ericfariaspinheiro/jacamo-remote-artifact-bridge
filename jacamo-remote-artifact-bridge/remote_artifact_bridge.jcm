@@ -1,8 +1,8 @@
-mas remote_artifacts_jacamo {
+mas remote_artifact_bridge {
 
-    agent echo_agent
+    agent sentiment_agent
 
     workspace main {
-        artifact echo: env.EchoProxyArtifact
+        artifact sentiment: env.SentimentProxyArtifact
     }
 }

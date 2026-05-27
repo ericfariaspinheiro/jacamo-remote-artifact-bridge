@@ -5,10 +5,11 @@ import type {
   SignalMessage,
 } from "../protocol.js"
 
-type Sentiment = "positive" | "negative" | "neutral"
+import { SentimentAnalysisService } from "../services/SentimentAnalysisService.js"
 
 export class SentimentArtifact {
   private replies: string[] = []
+  private analyzer = new SentimentAnalysisService()
 
   async clearReplies(callId: string): Promise<DoneMessage[]> {
     this.replies = []
@@ -45,6 +46,7 @@ export class SentimentArtifact {
     )[]
   > {
     const limitedReplies = this.replies.slice(0, 20)
+    const sentiments = await this.analyzer.reason(limitedReplies)
 
     const responses: (
       | ClearObservablePropertiesMessage
@@ -66,16 +68,16 @@ export class SentimentArtifact {
         type: "observable_property",
         callId,
         name: "analysis_count",
-        args: [limitedReplies.length],
+        args: [sentiments.length],
       },
     ]
 
-    limitedReplies.forEach((reply, index) => {
+    sentiments.forEach((sentiment, index) => {
       responses.push({
         type: "observable_property",
         callId,
         name: "sentiment_result",
-        args: [index + 1, this.classify(reply)],
+        args: [index + 1, sentiment],
       })
     })
 
@@ -92,46 +94,5 @@ export class SentimentArtifact {
     })
 
     return responses
-  }
-
-  private classify(text: string): Sentiment {
-    const normalized = text.toLowerCase()
-
-    const negativeWords = [
-      "bad",
-      "terrible",
-      "hate",
-      "awful",
-      "horrible",
-      "worst",
-      "ruim",
-      "péssimo",
-      "odeio",
-      "horrível",
-    ]
-
-    const positiveWords = [
-      "good",
-      "great",
-      "love",
-      "excellent",
-      "amazing",
-      "best",
-      "bom",
-      "ótimo",
-      "amo",
-      "excelente",
-      "incrível",
-    ]
-
-    if (negativeWords.some(word => normalized.includes(word))) {
-      return "negative"
-    }
-
-    if (positiveWords.some(word => normalized.includes(word))) {
-      return "positive"
-    }
-
-    return "neutral"
   }
 }

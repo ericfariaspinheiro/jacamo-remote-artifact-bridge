@@ -1,3 +1,4 @@
+import "dotenv/config"
 import { WebSocketServer } from "ws"
 import { EchoArtifact } from "./artifacts/EchoArtifact.js"
 import { SentimentArtifact } from "./artifacts/SentimentArtifact.js"

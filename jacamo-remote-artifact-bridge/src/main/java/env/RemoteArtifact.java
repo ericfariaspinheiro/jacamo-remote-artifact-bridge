@@ -140,6 +140,10 @@ public class RemoteArtifact extends Artifact {
             switch (type) {
                 case "signal" -> emitSignal(message);
 
+                case "observable_property" -> defineObservableProperty(message);
+
+                case "clear_observable_properties" -> clearObservableProperties(message);
+
                 case "done" -> signal(
                         "remote_done",
                         message.optString("callId", "unknown")
@@ -185,6 +189,32 @@ public class RemoteArtifact extends Artifact {
         }
 
         signal(name, signalArgs);
+    }
+
+    private void defineObservableProperty(JSONObject message) {
+        String name = message.getString("name");
+        JSONArray args = message.optJSONArray("args");
+
+        if (args == null || args.length() == 0) {
+            defineObsProperty(name);
+            return;
+        }
+
+        Object[] propertyArgs = new Object[args.length()];
+
+        for (int i = 0; i < args.length(); i++) {
+            propertyArgs[i] = args.get(i);
+        }
+
+        defineObsProperty(name, propertyArgs);
+    }
+
+    private void clearObservableProperties(JSONObject message) {
+        String name = message.getString("name");
+
+        while (getObsProperty(name) != null) {
+            removeObsProperty(name);
+        }
     }
 
     private JSONObject createErrorMessage(String callId, String code, String errorMessage) {
