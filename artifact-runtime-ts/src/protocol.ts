@@ -13,6 +13,19 @@ export type SignalMessage = {
   args: unknown[]
 }
 
+export type ObservablePropertyMessage = {
+  type: "observable_property"
+  callId: string
+  name: string
+  args: unknown[]
+}
+
+export type ClearObservablePropertiesMessage = {
+  type: "clear_observable_properties"
+  callId: string
+  name: string
+}
+
 export type DoneMessage = {
   type: "done"
   callId: string
@@ -29,5 +42,7 @@ export type IncomingMessage = OperationRequest
 
 export type OutgoingMessage =
   | SignalMessage
+  | ObservablePropertyMessage
+  | ClearObservablePropertiesMessage
   | DoneMessage
   | ErrorMessage
