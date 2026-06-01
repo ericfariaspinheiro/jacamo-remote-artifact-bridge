@@ -2,6 +2,7 @@ import "dotenv/config"
 import { WebSocketServer } from "ws"
 import { EchoArtifact } from "./artifacts/EchoArtifact.js"
 import { SentimentArtifact } from "./artifacts/SentimentArtifact.js"
+import { TwitterArtifact } from "./artifacts/TwitterArtifact.js"
 import type { IncomingMessage, OutgoingMessage } from "./protocol.js"
 
 const PORT = 8080
@@ -10,7 +11,7 @@ const server = new WebSocketServer({ port: PORT })
 
 const echoArtifact = new EchoArtifact()
 const sentimentArtifact = new SentimentArtifact()
-
+const twitterArtifact = new TwitterArtifact()
 console.log(`Artifact runtime listening on ws://localhost:${PORT}`)
 
 server.on("connection", socket => {
@@ -84,6 +85,20 @@ async function dispatch(message: IncomingMessage): Promise<OutgoingMessage[]> {
     }
 
     throw new Error(`Unknown SentimentArtifact operation: ${message.operation}`)
+  }
+
+  if (message.artifact === "TwitterArtifact") {
+    if (message.operation !== "collectTweets") {
+      throw new Error(`Unknown TwitterArtifact operation: ${message.operation}`)
+    }
+
+    const username = message.args.username
+
+    if (typeof username !== "string") {
+      throw new Error("Argument 'username' must be a string")
+    }
+
+    return twitterArtifact.collectTweets(message.callId, username)
   }
 
   throw new Error(`Unknown artifact: ${message.artifact}`)

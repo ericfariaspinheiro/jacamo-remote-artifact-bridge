@@ -1,0 +1,37 @@
+{
+  "name": "TwitterArtifact",
+  "runtime": "remote",
+  "transport": "websocket",
+  "operations": [
+    {
+      "name": "collectTweets",
+      "args": [
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "signals": [
+        {
+          "name": "tweet",
+          "args": ["string", "string", "string", "string", "number"]
+        },
+        {
+          "name": "reply",
+          "args": ["number", "string", "string", "string", "number"]
+        },
+        {
+          "name": "replies_done",
+          "args": []
+        }
+      ],
+      "errors": [
+        "runtime_error",
+        "invalid_arguments",
+        "twitter_api_failure",
+        "rate_limit",
+        "unauthorized"
+      ]
+    }
+  ]
+}
