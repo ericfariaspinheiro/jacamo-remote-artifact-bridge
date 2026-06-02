@@ -1,8 +1,9 @@
 mas remote_artifact_bridge {
 
-    agent twitter_agent
+    agent social_monitor_agent
 
     workspace main {
         artifact twitter: env.TwitterProxyArtifact
+        artifact sentiment: env.SentimentProxyArtifact
     }
 }
