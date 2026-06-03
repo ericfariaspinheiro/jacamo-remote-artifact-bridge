@@ -6,7 +6,12 @@ import { EchoArtifact } from "./artifacts/EchoArtifact.js"
 import { SentimentArtifact } from "./artifacts/SentimentArtifact.js"
 import { TwitterArtifact } from "./artifacts/TwitterArtifact.js"
 
-import type { IncomingMessage, OutgoingMessage } from "./protocol.js"
+import type {
+  ArtifactManifestMessage,
+  IncomingMessage,
+  OperationRequest,
+  OutgoingMessage,
+} from "./protocol.js"
 
 const PORT = 8080
 
@@ -16,21 +21,28 @@ const echoArtifact = new EchoArtifact()
 const sentimentArtifact = new SentimentArtifact()
 const twitterArtifact = new TwitterArtifact()
 
-console.log(`Runtime do artifato ouvindo na ws://localhost:${PORT}`)
+console.log(`Artifact runtime listening on ws://localhost:${PORT}`)
 
 server.on("connection", socket => {
-  console.log("JaCaMo proxy conectado")
+  console.log("JaCaMagic artifact connected")
 
   socket.on("message", async raw => {
     let callId = "unknown"
 
     try {
       const message = JSON.parse(raw.toString()) as IncomingMessage
-      callId = message.callId
+
+      if (message.type === "runtime_hello") {
+        const manifest = createEchoManifest()
+        socket.send(JSON.stringify(manifest))
+        return
+      }
 
       if (message.type !== "operation_request") {
         throw new Error(`Unsupported message type: ${(message as any).type}`)
       }
+
+      callId = message.callId
 
       const responses = await dispatch(message)
 
@@ -50,11 +62,36 @@ server.on("connection", socket => {
   })
 
   socket.on("close", () => {
-    console.log("JaCaMo proxy desconectado")
+    console.log("JaCaMagic artifact disconnected")
   })
 })
 
-async function dispatch(message: IncomingMessage): Promise<OutgoingMessage[]> {
+function createEchoManifest(): ArtifactManifestMessage {
+  return {
+    type: "artifact_manifest",
+    artifact: "EchoArtifact",
+    operations: [
+      {
+        name: "echo",
+        args: [
+          {
+            name: "message",
+            type: "string",
+          },
+        ],
+      },
+    ],
+    signals: [
+      {
+        name: "echo_result",
+        args: ["string"],
+      },
+    ],
+    observableProperties: [],
+  }
+}
+
+async function dispatch(message: OperationRequest): Promise<OutgoingMessage[]> {
   if (message.artifact === "EchoArtifact") {
     if (message.operation !== "echo") {
       throw new Error(`Unknown EchoArtifact operation: ${message.operation}`)

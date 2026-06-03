@@ -1,38 +1,39 @@
 package env;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.WebSocket;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import cartago.Artifact;
 import cartago.IArtifactOp;
+import cartago.INTERNAL_OPERATION;
 
 public class MagicArtifact extends Artifact {
 
+    private WebSocket webSocket;
     private String remoteArtifactName;
+    private final AtomicInteger callCounter = new AtomicInteger(0);
+    private CompletableFuture<JSONObject> manifestFuture;
 
-    void init() {
-        init("manifests/echo.manifest.json");
-    }
-
-    void init(String manifestPath) {
+    void init(String host, int port) {
         System.out.println("JaCaMagic: MagicArtifact initialized");
-        System.out.println("JaCaMagic: loading local manifest: " + manifestPath);
+        System.out.println("JaCaMagic: connecting to ws://" + host + ":" + port);
 
-        JSONObject manifest = loadManifest(manifestPath);
+        JSONObject manifest = connectAndLoadManifest(host, port);
 
-        remoteArtifactName = manifest.optString("artifact", "UnknownArtifact");
+        remoteArtifactName = manifest.getString("artifact");
 
         JSONArray operations = manifest.optJSONArray("operations");
 
         if (operations == null) {
-            signal("magic_error", "manifest does not contain operations");
-            return;
+            throw new RuntimeException("Manifest does not contain operations");
         }
 
         for (int i = 0; i < operations.length(); i++) {
@@ -51,32 +52,125 @@ public class MagicArtifact extends Artifact {
         signal("magic_ready", remoteArtifactName);
     }
 
-    private JSONObject loadManifest(String manifestPath) {
+    private JSONObject connectAndLoadManifest(String host, int port) {
         try {
-            InputStream inputStream = getClass()
-                    .getClassLoader()
-                    .getResourceAsStream(manifestPath);
+            manifestFuture = new CompletableFuture<>();
 
-            if (inputStream == null) {
-                inputStream = new FileInputStream(manifestPath);
-            }
+            HttpClient client = HttpClient.newHttpClient();
 
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(inputStream, StandardCharsets.UTF_8)
-            )) {
-                StringBuilder content = new StringBuilder();
-                String line;
+            String url = "ws://" + host + ":" + port;
 
-                while ((line = reader.readLine()) != null) {
-                    content.append(line);
-                }
+            webSocket = client.newWebSocketBuilder()
+                    .buildAsync(URI.create(url), new WebSocket.Listener() {
 
-                return new JSONObject(content.toString());
-            }
+                        private final StringBuilder partialMessage = new StringBuilder();
+
+                        @Override
+                        public CompletionStage<?> onText(
+                                WebSocket webSocket,
+                                CharSequence data,
+                                boolean last
+                        ) {
+                            partialMessage.append(data);
+
+                            if (last) {
+                                String completeMessage = partialMessage.toString();
+                                partialMessage.setLength(0);
+
+                                handleRawWebSocketMessage(completeMessage);
+                            }
+
+                            webSocket.request(1);
+                            return null;
+                        }
+
+                        @Override
+                        public void onError(WebSocket webSocket, Throwable error) {
+                            if (manifestFuture != null && !manifestFuture.isDone()) {
+                                manifestFuture.completeExceptionally(error);
+                            } else {
+                                execInternalOp(
+                                        "processRemoteMessage",
+                                        createErrorMessage(
+                                                "unknown",
+                                                "websocket_error",
+                                                error.getMessage() != null
+                                                        ? error.getMessage()
+                                                        : "Unknown WebSocket error"
+                                        ).toString()
+                                );
+                            }
+                        }
+
+                        @Override
+                        public CompletionStage<?> onClose(
+                                WebSocket webSocket,
+                                int statusCode,
+                                String reason
+                        ) {
+                            execInternalOp(
+                                    "processRemoteMessage",
+                                    createErrorMessage(
+                                            "unknown",
+                                            "websocket_closed",
+                                            "WebSocket closed: " + statusCode + " " + reason
+                                    ).toString()
+                            );
+
+                            return null;
+                        }
+                    })
+                    .join();
+
+            webSocket.request(1);
+
+            sendRuntimeHello();
+
+            JSONObject manifest = manifestFuture.get(10, TimeUnit.SECONDS);
+
+            System.out.println("JaCaMagic: artifact manifest received");
+
+            return manifest;
+
         } catch (Exception error) {
-            throw new RuntimeException(
-                    "Failed to load manifest: " + manifestPath,
-                    error
+            throw new RuntimeException("Failed to initialize MagicArtifact", error);
+        }
+    }
+
+    private void sendRuntimeHello() {
+        JSONObject hello = new JSONObject();
+        hello.put("type", "runtime_hello");
+        hello.put("protocolVersion", "1.0");
+
+        webSocket.sendText(hello.toString(), true);
+
+        System.out.println("JaCaMagic: runtime_hello sent");
+    }
+
+    private void handleRawWebSocketMessage(String rawMessage) {
+        try {
+            JSONObject message = new JSONObject(rawMessage);
+            String type = message.getString("type");
+
+            if ("artifact_manifest".equals(type)) {
+                if (manifestFuture != null && !manifestFuture.isDone()) {
+                    manifestFuture.complete(message);
+                    return;
+                }
+            }
+
+            execInternalOp("processRemoteMessage", rawMessage);
+
+        } catch (Exception error) {
+            execInternalOp(
+                    "processRemoteMessage",
+                    createErrorMessage(
+                            "unknown",
+                            "invalid_message",
+                            error.getMessage() != null
+                                    ? error.getMessage()
+                                    : "Invalid remote message"
+                    ).toString()
             );
         }
     }
@@ -87,28 +181,142 @@ public class MagicArtifact extends Artifact {
 
         int arity = args == null ? 0 : args.length();
 
-        defineOp(new ManifestDynamicOperation(operationSpec), null);
+        defineOp(new RemoteDynamicOperation(operationSpec), null);
 
         System.out.println(
-                "JaCaMagic: dynamic operation registered from manifest: "
+                "JaCaMagic: dynamic operation registered from remote manifest: "
                         + operationName
                         + "/"
                         + arity
         );
     }
 
-    private class ManifestDynamicOperation implements IArtifactOp {
+    private void invokeRemote(String operationName, JSONObject args) {
+        if (webSocket == null) {
+            signal("magic_error", "WebSocket is not connected");
+            return;
+        }
 
-        private final JSONObject operationSpec;
+        String callId = String.valueOf(callCounter.incrementAndGet());
+
+        JSONObject request = new JSONObject();
+        request.put("type", "operation_request");
+        request.put("callId", callId);
+        request.put("artifact", remoteArtifactName);
+        request.put("operation", operationName);
+        request.put("args", args);
+
+        webSocket.sendText(request.toString(), true);
+
+        signal("remote_started", callId, operationName);
+    }
+
+    @INTERNAL_OPERATION
+    void processRemoteMessage(String rawMessage) {
+        handleRemoteMessage(rawMessage);
+    }
+
+    private void handleRemoteMessage(String rawMessage) {
+        try {
+            JSONObject message = new JSONObject(rawMessage);
+            String type = message.getString("type");
+
+            switch (type) {
+                case "signal" -> emitSignal(message);
+
+                case "observable_property" -> defineObservableProperty(message);
+
+                case "clear_observable_properties" -> clearObservableProperties(message);
+
+                case "done" -> signal(
+                        "remote_done",
+                        message.optString("callId", "unknown")
+                );
+
+                case "error" -> signal(
+                        "remote_error",
+                        message.optString("callId", "unknown"),
+                        message.optString("code", "runtime_error"),
+                        message.optString("message", "Unknown error")
+                );
+
+                default -> signal(
+                        "magic_error",
+                        "unknown remote message type: " + type
+                );
+            }
+
+        } catch (Exception error) {
+            signal(
+                    "magic_error",
+                    error.getMessage() != null
+                            ? error.getMessage()
+                            : "Invalid remote message"
+            );
+        }
+    }
+
+    private void emitSignal(JSONObject message) {
+        String name = message.getString("name");
+        JSONArray args = message.optJSONArray("args");
+
+        if (args == null || args.length() == 0) {
+            signal(name);
+            return;
+        }
+
+        Object[] signalArgs = new Object[args.length()];
+
+        for (int i = 0; i < args.length(); i++) {
+            signalArgs[i] = args.get(i);
+        }
+
+        signal(name, signalArgs);
+    }
+
+    private void defineObservableProperty(JSONObject message) {
+        String name = message.getString("name");
+        JSONArray args = message.optJSONArray("args");
+
+        if (args == null || args.length() == 0) {
+            defineObsProperty(name);
+            return;
+        }
+
+        Object[] propertyArgs = new Object[args.length()];
+
+        for (int i = 0; i < args.length(); i++) {
+            propertyArgs[i] = args.get(i);
+        }
+
+        defineObsProperty(name, propertyArgs);
+    }
+
+    private void clearObservableProperties(JSONObject message) {
+        String name = message.getString("name");
+
+        while (getObsProperty(name) != null) {
+            removeObsProperty(name);
+        }
+    }
+
+    private JSONObject createErrorMessage(String callId, String code, String errorMessage) {
+        JSONObject error = new JSONObject();
+        error.put("type", "error");
+        error.put("callId", callId);
+        error.put("code", code);
+        error.put("message", errorMessage);
+        return error;
+    }
+
+    private class RemoteDynamicOperation implements IArtifactOp {
+
         private final String operationName;
         private final JSONArray args;
-        private final JSONObject mockResponse;
 
-        ManifestDynamicOperation(JSONObject operationSpec) {
-            this.operationSpec = operationSpec;
+        RemoteDynamicOperation(JSONObject operationSpec) {
             this.operationName = operationSpec.getString("name");
             this.args = operationSpec.optJSONArray("args");
-            this.mockResponse = operationSpec.optJSONObject("mockResponse");
         }
 
         @Override
@@ -141,13 +349,13 @@ public class MagicArtifact extends Artifact {
             JSONObject namedArgs = mapArguments(actualParams);
 
             System.out.println(
-                    "JaCaMagic: dynamic operation "
+                    "JaCaMagic: remote dynamic operation "
                             + operationName
                             + " called with "
                             + namedArgs
             );
 
-            emitMockResponse(namedArgs);
+            invokeRemote(operationName, namedArgs);
         }
 
         private JSONObject mapArguments(Object[] actualParams) {
@@ -194,40 +402,6 @@ public class MagicArtifact extends Artifact {
                 case "object" -> true;
                 default -> true;
             };
-        }
-
-        private void emitMockResponse(JSONObject namedArgs) {
-            if (mockResponse == null) {
-                signal("magic_operation_called", operationName, namedArgs.toString());
-                return;
-            }
-
-            String responseType = mockResponse.optString("type", "signal");
-
-            if (!"signal".equals(responseType)) {
-                signal(
-                        "magic_error",
-                        "unsupported mock response type: " + responseType
-                );
-                return;
-            }
-
-            String signalName = mockResponse.getString("name");
-            JSONArray argsFrom = mockResponse.optJSONArray("argsFrom");
-
-            if (argsFrom == null || argsFrom.length() == 0) {
-                signal(signalName);
-                return;
-            }
-
-            Object[] signalArgs = new Object[argsFrom.length()];
-
-            for (int i = 0; i < argsFrom.length(); i++) {
-                String argName = argsFrom.getString(i);
-                signalArgs[i] = namedArgs.opt(argName);
-            }
-
-            signal(signalName, signalArgs);
         }
     }
 }

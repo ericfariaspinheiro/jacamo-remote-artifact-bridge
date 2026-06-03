@@ -1,9 +1,34 @@
+export type RuntimeHelloMessage = {
+  type: "runtime_hello"
+  protocolVersion: string
+}
+
 export type OperationRequest = {
   type: "operation_request"
   callId: string
   artifact: string
   operation: string
   args: Record<string, unknown>
+}
+
+export type ArtifactManifestMessage = {
+  type: "artifact_manifest"
+  artifact: string
+  operations: {
+    name: string
+    args: {
+      name: string
+      type: string
+    }[]
+  }[]
+  signals?: {
+    name: string
+    args: string[]
+  }[]
+  observableProperties?: {
+    name: string
+    args: string[]
+  }[]
 }
 
 export type SignalMessage = {
@@ -38,9 +63,10 @@ export type ErrorMessage = {
   message: string
 }
 
-export type IncomingMessage = OperationRequest
+export type IncomingMessage = RuntimeHelloMessage | OperationRequest
 
 export type OutgoingMessage =
+  | ArtifactManifestMessage
   | SignalMessage
   | ObservablePropertyMessage
   | ClearObservablePropertiesMessage

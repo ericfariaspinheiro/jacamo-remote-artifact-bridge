@@ -3,6 +3,6 @@ mas remote_artifact_bridge {
     agent magic_echo_agent
 
     workspace main {
-        artifact magic: env.MagicArtifact("manifests/echo.manifest.json")
+        artifact magic: env.MagicArtifact("localhost", 8080)
     }
 }

@@ -1,11 +1,11 @@
 !start.
 
 +!start <-
-    .print("Starting JaCaMagic manifest-based operation test...");
+    .print("Starting JaCaMagic WebSocket manifest test...");
     joinWorkspace("main", WspId);
     lookupArtifact("magic", MagicId);
     focus(MagicId);
-    echo("hello from manifest").
+    echo("hello from remote manifest").
 
 +echo_result(Message) <-
     .print("JaCaMagic echo result: ", Message).
@@ -16,5 +16,8 @@
 +magic_error(Message) <-
     .print("JaCaMagic error: ", Message).
 
-+magic_operation_called(Operation, Args) <-
-    .print("JaCaMagic operation called: ", Operation, " args: ", Args).
++remote_started(CallId, Operation) <-
+    .print("Remote operation started: ", Operation, " / callId: ", CallId).
+
++remote_done(CallId) <-
+    .print("Remote operation finished. callId: ", CallId).
