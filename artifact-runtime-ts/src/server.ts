@@ -1,8 +1,11 @@
 import "dotenv/config"
+
 import { WebSocketServer } from "ws"
+
 import { EchoArtifact } from "./artifacts/EchoArtifact.js"
 import { SentimentArtifact } from "./artifacts/SentimentArtifact.js"
 import { TwitterArtifact } from "./artifacts/TwitterArtifact.js"
+
 import type { IncomingMessage, OutgoingMessage } from "./protocol.js"
 
 const PORT = 8080
@@ -12,10 +15,11 @@ const server = new WebSocketServer({ port: PORT })
 const echoArtifact = new EchoArtifact()
 const sentimentArtifact = new SentimentArtifact()
 const twitterArtifact = new TwitterArtifact()
-console.log(`Artifact runtime listening on ws://localhost:${PORT}`)
+
+console.log(`Runtime do artifato ouvindo na ws://localhost:${PORT}`)
 
 server.on("connection", socket => {
-  console.log("JaCaMo proxy connected")
+  console.log("JaCaMo proxy conectado")
 
   socket.on("message", async raw => {
     let callId = "unknown"
@@ -46,7 +50,7 @@ server.on("connection", socket => {
   })
 
   socket.on("close", () => {
-    console.log("JaCaMo proxy disconnected")
+    console.log("JaCaMo proxy desconectado")
   })
 })
 
@@ -68,6 +72,10 @@ async function dispatch(message: IncomingMessage): Promise<OutgoingMessage[]> {
   if (message.artifact === "SentimentArtifact") {
     if (message.operation === "clearReplies") {
       return sentimentArtifact.clearReplies(message.callId)
+    }
+
+    if (message.operation === "clearResults") {
+      return sentimentArtifact.clearResults(message.callId)
     }
 
     if (message.operation === "addReply") {

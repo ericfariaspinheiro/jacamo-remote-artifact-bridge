@@ -22,6 +22,27 @@ export class SentimentArtifact {
     ]
   }
 
+  async clearResults(
+    callId: string
+  ): Promise<(ClearObservablePropertiesMessage | DoneMessage)[]> {
+    return [
+      {
+        type: "clear_observable_properties",
+        callId,
+        name: "analysis_count",
+      },
+      {
+        type: "clear_observable_properties",
+        callId,
+        name: "sentiment_result",
+      },
+      {
+        type: "done",
+        callId,
+      },
+    ]
+  }
+
   async addReply(callId: string, text: string): Promise<DoneMessage[]> {
     if (text.trim()) {
       this.replies.push(text.trim())

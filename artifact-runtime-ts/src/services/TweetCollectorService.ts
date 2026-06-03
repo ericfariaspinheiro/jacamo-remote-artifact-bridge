@@ -4,6 +4,8 @@ import type { Tweet } from "../types/Tweet.js"
 const USER_TWEETS_URL = "https://api.twitterapi.io/twitter/user/last_tweets"
 const TWEET_REPLIES_URL_V2 = "https://api.twitterapi.io/twitter/tweet/replies/v2"
 
+const REQUEST_DELAY_MS = 7000
+
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 type CollectionResult = {
@@ -68,7 +70,7 @@ export class TweetCollectorService {
           continue
         }
 
-        await sleep(6000)
+        await sleep(REQUEST_DELAY_MS)
 
         const repliesResponse = await axios.get(TWEET_REPLIES_URL_V2, {
           headers: {
@@ -127,6 +129,11 @@ export class TweetCollectorService {
         console.log("Unknown Twitter collector error:", error)
       }
 
+      if (process.env.USE_MOCK_TWITTER_FALLBACK === "true") {
+        console.log("Using mock Twitter data as fallback")
+        return this.getMockCollection(username)
+      }
+
       return { tweet: null, replies: [] }
     }
   }
@@ -137,5 +144,42 @@ export class TweetCollectorService {
       .replace(/@\w+/g, "")
       .replace(/\s+/g, " ")
       .trim()
+  }
+
+  private getMockCollection(username: string): CollectionResult {
+    const createdAt = new Date().toISOString()
+
+    return {
+      tweet: {
+        id: "mock-tweet-1",
+        text: "This is a mock tweet used to validate the remote artifact architecture.",
+        author: username,
+        createdAt,
+        likes: 42,
+      },
+      replies: [
+        {
+          id: "mock-reply-1",
+          text: "I love this announcement",
+          author: "mock_user_1",
+          createdAt,
+          likes: 12,
+        },
+        {
+          id: "mock-reply-2",
+          text: "This is terrible",
+          author: "mock_user_2",
+          createdAt,
+          likes: 7,
+        },
+        {
+          id: "mock-reply-3",
+          text: "This is just a factual comment",
+          author: "mock_user_3",
+          createdAt,
+          likes: 3,
+        },
+      ],
+    }
   }
 }

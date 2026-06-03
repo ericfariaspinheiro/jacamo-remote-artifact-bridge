@@ -12,6 +12,11 @@ public class SentimentProxyArtifact extends RemoteArtifact {
     }
 
     @OPERATION
+    public void clearResults() {
+        invokeRemote("SentimentArtifact", "clearResults", new JSONObject());
+    }
+
+    @OPERATION
     public void addReply(String text) {
         JSONObject args = new JSONObject();
         args.put("text", text);

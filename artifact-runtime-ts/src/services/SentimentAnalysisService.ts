@@ -1,6 +1,9 @@
 import { GoogleGenAI } from "@google/genai"
+import type { Tweet } from "../types/Tweet.js"
 
 export type Sentiment = "positive" | "negative" | "neutral"
+
+type ReasonInput = Tweet[] | string[]
 
 export class SentimentAnalysisService {
   private ai: GoogleGenAI
@@ -17,7 +20,9 @@ export class SentimentAnalysisService {
     this.model = process.env.GEMINI_MODEL || "gemini-2.5-flash"
   }
 
-  async reason(replyTexts: string[]): Promise<Sentiment[]> {
+  async reason(input: ReasonInput): Promise<Sentiment[]> {
+    const replyTexts = this.extractReplyTexts(input)
+
     if (!replyTexts.length) return []
 
     const limitedReplies = replyTexts.slice(0, 20)
@@ -51,26 +56,43 @@ ${formattedReplies}
       })
 
       const raw = response.text || ""
-
-      const cleaned = raw
-        .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim()
-
+      const cleaned = this.cleanLLMResponse(raw)
       const parsed = JSON.parse(cleaned)
 
       if (!Array.isArray(parsed.sentiments)) {
         throw new Error("Invalid LLM response: missing sentiments array")
       }
 
-      return parsed.sentiments
+      const sentiments = parsed.sentiments
         .slice(0, limitedReplies.length)
         .map((sentiment: string) => this.normalize(sentiment))
+
+      return this.ensureSameLength(sentiments, limitedReplies.length)
     } catch (error) {
       console.log("LLM sentiment analysis failed:", error)
 
       return limitedReplies.map(() => "neutral")
     }
+  }
+
+  private extractReplyTexts(input: ReasonInput): string[] {
+    return input
+      .map(item => {
+        if (typeof item === "string") {
+          return item
+        }
+
+        return item.text
+      })
+      .map(text => text.trim())
+      .filter(Boolean)
+  }
+
+  private cleanLLMResponse(raw: string): string {
+    return raw
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim()
   }
 
   private normalize(value: string): Sentiment {
@@ -80,5 +102,21 @@ ${formattedReplies}
     if (normalized === "negative") return "negative"
 
     return "neutral"
+  }
+
+  private ensureSameLength(
+    sentiments: Sentiment[],
+    expectedLength: number
+  ): Sentiment[] {
+    if (sentiments.length >= expectedLength) {
+      return sentiments.slice(0, expectedLength)
+    }
+
+    const missingCount = expectedLength - sentiments.length
+
+    return [
+      ...sentiments,
+      ...Array.from({ length: missingCount }, () => "neutral" as const),
+    ]
   }
 }
