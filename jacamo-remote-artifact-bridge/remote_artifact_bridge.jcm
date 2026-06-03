@@ -1,14 +1,8 @@
 mas remote_artifact_bridge {
 
-    agent social_monitor_agent
+    agent magic_echo_agent
 
     workspace main {
-        artifact twitter: env.TwitterProxyArtifact
-        artifact sentiment: env.SentimentProxyArtifact
-
-        //recebe apenas endereço e porta
-        artifact ax1: env.magico(port8080)
-        artifact ax2: env.magico(port8081)
-
+        artifact magic: env.MagicArtifact
     }
 }
