@@ -1,8 +1,8 @@
 mas remote_artifact_bridge {
 
-    agent magic_echo_agent
+    agent magic_sentiment_agent
 
     workspace main {
-        artifact magic: env.MagicArtifact("localhost", 8080)
+        artifact sentiment: env.MagicArtifact("localhost", 8080)
     }
 }

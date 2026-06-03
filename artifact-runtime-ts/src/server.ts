@@ -33,7 +33,7 @@ server.on("connection", socket => {
       const message = JSON.parse(raw.toString()) as IncomingMessage
 
       if (message.type === "runtime_hello") {
-        const manifest = createEchoManifest()
+        const manifest = createSentimentManifest()
         socket.send(JSON.stringify(manifest))
         return
       }
@@ -147,4 +147,50 @@ async function dispatch(message: OperationRequest): Promise<OutgoingMessage[]> {
   }
 
   throw new Error(`Unknown artifact: ${message.artifact}`)
+}
+
+function createSentimentManifest(): ArtifactManifestMessage {
+  return {
+    type: "artifact_manifest",
+    artifact: "SentimentArtifact",
+    operations: [
+      {
+        name: "clearReplies",
+        args: [],
+      },
+      {
+        name: "clearResults",
+        args: [],
+      },
+      {
+        name: "addReply",
+        args: [
+          {
+            name: "text",
+            type: "string",
+          },
+        ],
+      },
+      {
+        name: "analyze",
+        args: [],
+      },
+    ],
+    signals: [
+      {
+        name: "analysis_done",
+        args: [],
+      },
+    ],
+    observableProperties: [
+      {
+        name: "analysis_count",
+        args: ["number"],
+      },
+      {
+        name: "sentiment_result",
+        args: ["number", "string"],
+      },
+    ],
+  }
 }
