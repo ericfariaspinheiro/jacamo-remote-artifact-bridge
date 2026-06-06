@@ -33,7 +33,7 @@ server.on("connection", socket => {
       const message = JSON.parse(raw.toString()) as IncomingMessage
 
       if (message.type === "runtime_hello") {
-        const manifest = createSentimentManifest()
+        const manifest = createTwitterManifest()
         socket.send(JSON.stringify(manifest))
         return
       }
@@ -192,5 +192,38 @@ function createSentimentManifest(): ArtifactManifestMessage {
         args: ["number", "string"],
       },
     ],
+  }
+}
+
+function createTwitterManifest(): ArtifactManifestMessage {
+  return {
+    type: "artifact_manifest",
+    artifact: "TwitterArtifact",
+    operations: [
+      {
+        name: "collectTweets",
+        args: [
+          {
+            name: "username",
+            type: "string",
+          },
+        ],
+      },
+    ],
+    signals: [
+      {
+        name: "tweet",
+        args: ["string", "string", "string", "string", "number"],
+      },
+      {
+        name: "reply",
+        args: ["number", "string", "string", "string", "number"],
+      },
+      {
+        name: "replies_done",
+        args: [],
+      },
+    ],
+    observableProperties: [],
   }
 }

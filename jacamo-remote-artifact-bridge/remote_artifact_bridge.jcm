@@ -1,8 +1,8 @@
 mas remote_artifact_bridge {
 
-    agent magic_sentiment_agent
+    agent magic_twitter_agent
 
     workspace main {
-        artifact sentiment: env.MagicArtifact("localhost", 8080)
+        artifact twitter: env.MagicArtifact("localhost", 8080)
     }
 }
