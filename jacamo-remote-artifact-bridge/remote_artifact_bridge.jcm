@@ -1,6 +1,6 @@
 mas remote_artifact_bridge {
 
-    agent magic_sentiment_agent
+    agent magic_social_monitor_agent.asl
 
     workspace main {
         artifact twitter: env.MagicArtifact("localhost", 8080, "TwitterArtifact")
