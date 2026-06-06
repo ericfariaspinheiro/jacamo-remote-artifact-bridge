@@ -17,22 +17,25 @@ import cartago.INTERNAL_OPERATION;
 
 public class MagicArtifact extends Artifact {
 
+    private static final boolean DEBUG = false;
+
     private WebSocket webSocket;
     private String remoteArtifactName;
+    private String requestedArtifactName;
+
     private final AtomicInteger callCounter = new AtomicInteger(0);
     private CompletableFuture<JSONObject> manifestFuture;
-    private String requestedArtifactName;
 
     void init(String host, int port) {
         init(host, port, "EchoArtifact");
     }
 
     void init(String host, int port, String artifactName) {
-        System.out.println("JaCaMagic: MagicArtifact initialized");
-        System.out.println("JaCaMagic: requested remote artifact: " + artifactName);
-        System.out.println("JaCaMagic: connecting to ws://" + host + ":" + port);
-
         requestedArtifactName = artifactName;
+
+        debug("MagicArtifact initialized");
+        debug("Requested remote artifact: " + artifactName);
+        debug("Connecting to ws://" + host + ":" + port);
 
         JSONObject manifest = connectAndLoadManifest(host, port);
 
@@ -41,9 +44,9 @@ public class MagicArtifact extends Artifact {
         if (!requestedArtifactName.equals(remoteArtifactName)) {
             throw new RuntimeException(
                     "Manifest artifact mismatch. Requested "
-                    + requestedArtifactName
-                    + " but received "
-                    + remoteArtifactName
+                            + requestedArtifactName
+                            + " but received "
+                            + remoteArtifactName
             );
         }
 
@@ -59,11 +62,11 @@ public class MagicArtifact extends Artifact {
         }
 
         System.out.println(
-                "JaCaMagic: manifest loaded for artifact "
-                + remoteArtifactName
-                + " with "
-                + operations.length()
-                + " operation(s)"
+                "JaCaMagic: "
+                        + remoteArtifactName
+                        + " ready with "
+                        + operations.length()
+                        + " operation(s)"
         );
 
         signal("magic_ready", remoteArtifactName);
@@ -74,7 +77,6 @@ public class MagicArtifact extends Artifact {
             manifestFuture = new CompletableFuture<>();
 
             HttpClient client = HttpClient.newHttpClient();
-
             String url = "ws://" + host + ":" + port;
 
             webSocket = client.newWebSocketBuilder()
@@ -105,18 +107,19 @@ public class MagicArtifact extends Artifact {
                         public void onError(WebSocket webSocket, Throwable error) {
                             if (manifestFuture != null && !manifestFuture.isDone()) {
                                 manifestFuture.completeExceptionally(error);
-                            } else {
-                                execInternalOp(
-                                        "processRemoteMessage",
-                                        createErrorMessage(
-                                                "unknown",
-                                                "websocket_error",
-                                                error.getMessage() != null
-                                                ? error.getMessage()
-                                                : "Unknown WebSocket error"
-                                        ).toString()
-                                );
+                                return;
                             }
+
+                            execInternalOp(
+                                    "processRemoteMessage",
+                                    createErrorMessage(
+                                            "unknown",
+                                            "websocket_error",
+                                            error.getMessage() != null
+                                                    ? error.getMessage()
+                                                    : "Unknown WebSocket error"
+                                    ).toString()
+                            );
                         }
 
                         @Override
@@ -125,15 +128,7 @@ public class MagicArtifact extends Artifact {
                                 int statusCode,
                                 String reason
                         ) {
-                            execInternalOp(
-                                    "processRemoteMessage",
-                                    createErrorMessage(
-                                            "unknown",
-                                            "websocket_closed",
-                                            "WebSocket closed: " + statusCode + " " + reason
-                                    ).toString()
-                            );
-
+                            debug("WebSocket closed: " + statusCode + " " + reason);
                             return null;
                         }
                     })
@@ -145,10 +140,9 @@ public class MagicArtifact extends Artifact {
 
             JSONObject manifest = manifestFuture.get(10, TimeUnit.SECONDS);
 
-            System.out.println("JaCaMagic: artifact manifest received");
+            debug("Artifact manifest received");
 
             return manifest;
-
         } catch (Exception error) {
             throw new RuntimeException("Failed to initialize MagicArtifact", error);
         }
@@ -162,10 +156,7 @@ public class MagicArtifact extends Artifact {
 
         webSocket.sendText(hello.toString(), true);
 
-        System.out.println(
-                "JaCaMagic: runtime_hello sent for artifact "
-                + requestedArtifactName
-        );
+        debug("runtime_hello sent for artifact " + requestedArtifactName);
     }
 
     private void handleRawWebSocketMessage(String rawMessage) {
@@ -180,8 +171,18 @@ public class MagicArtifact extends Artifact {
                 }
             }
 
-            execInternalOp("processRemoteMessage", rawMessage);
+            if ("error".equals(type)) {
+                if (manifestFuture != null && !manifestFuture.isDone()) {
+                    manifestFuture.completeExceptionally(
+                            new RuntimeException(
+                                    message.optString("message", "Unknown runtime error")
+                            )
+                    );
+                    return;
+                }
+            }
 
+            execInternalOp("processRemoteMessage", rawMessage);
         } catch (Exception error) {
             execInternalOp(
                     "processRemoteMessage",
@@ -189,8 +190,8 @@ public class MagicArtifact extends Artifact {
                             "unknown",
                             "invalid_message",
                             error.getMessage() != null
-                            ? error.getMessage()
-                            : "Invalid remote message"
+                                    ? error.getMessage()
+                                    : "Invalid remote message"
                     ).toString()
             );
         }
@@ -204,11 +205,11 @@ public class MagicArtifact extends Artifact {
 
         defineOp(new RemoteDynamicOperation(operationSpec), null);
 
-        System.out.println(
-                "JaCaMagic: dynamic operation registered from remote manifest: "
-                + operationName
-                + "/"
-                + arity
+        debug(
+                "Dynamic operation registered from remote manifest: "
+                        + operationName
+                        + "/"
+                        + arity
         );
     }
 
@@ -243,42 +244,35 @@ public class MagicArtifact extends Artifact {
             String type = message.getString("type");
 
             switch (type) {
-                case "signal" ->
-                    emitSignal(message);
+                case "signal" -> emitSignal(message);
 
-                case "observable_property" ->
-                    defineObservableProperty(message);
+                case "observable_property" -> defineObservableProperty(message);
 
-                case "clear_observable_properties" ->
-                    clearObservableProperties(message);
+                case "clear_observable_properties" -> clearObservableProperties(message);
 
-                case "done" ->
-                    signal(
-                            "remote_done",
-                            message.optString("callId", "unknown")
-                    );
+                case "done" -> signal(
+                        "remote_done",
+                        message.optString("callId", "unknown")
+                );
 
-                case "error" ->
-                    signal(
-                            "remote_error",
-                            message.optString("callId", "unknown"),
-                            message.optString("code", "runtime_error"),
-                            message.optString("message", "Unknown error")
-                    );
+                case "error" -> signal(
+                        "remote_error",
+                        message.optString("callId", "unknown"),
+                        message.optString("code", "runtime_error"),
+                        message.optString("message", "Unknown error")
+                );
 
-                default ->
-                    signal(
-                            "magic_error",
-                            "unknown remote message type: " + type
-                    );
+                default -> signal(
+                        "magic_error",
+                        "unknown remote message type: " + type
+                );
             }
-
         } catch (Exception error) {
             signal(
                     "magic_error",
                     error.getMessage() != null
-                    ? error.getMessage()
-                    : "Invalid remote message"
+                            ? error.getMessage()
+                            : "Invalid remote message"
             );
         }
     }
@@ -333,7 +327,14 @@ public class MagicArtifact extends Artifact {
         error.put("callId", callId);
         error.put("code", code);
         error.put("message", errorMessage);
+
         return error;
+    }
+
+    private void debug(String message) {
+        if (DEBUG) {
+            System.out.println("JaCaMagic: " + message);
+        }
     }
 
     private class RemoteDynamicOperation implements IArtifactOp {
@@ -375,11 +376,11 @@ public class MagicArtifact extends Artifact {
 
             JSONObject namedArgs = mapArguments(actualParams);
 
-            System.out.println(
-                    "JaCaMagic: remote dynamic operation "
-                    + operationName
-                    + " called with "
-                    + namedArgs
+            debug(
+                    "Remote dynamic operation "
+                            + operationName
+                            + " called with "
+                            + namedArgs
             );
 
             invokeRemote(operationName, namedArgs);
@@ -404,13 +405,13 @@ public class MagicArtifact extends Artifact {
                     signal(
                             "magic_error",
                             "invalid argument type for "
-                            + operationName
-                            + "."
-                            + argName
-                            + ": expected "
-                            + argType
-                            + ", got "
-                            + value.getClass().getSimpleName()
+                                    + operationName
+                                    + "."
+                                    + argName
+                                    + ": expected "
+                                    + argType
+                                    + ", got "
+                                    + (value == null ? "null" : value.getClass().getSimpleName())
                     );
                     continue;
                 }
@@ -422,17 +423,16 @@ public class MagicArtifact extends Artifact {
         }
 
         private boolean isValidType(Object value, String expectedType) {
+            if (value == null) {
+                return true;
+            }
+
             return switch (expectedType) {
-                case "string" ->
-                    value instanceof String;
-                case "number" ->
-                    value instanceof Number;
-                case "boolean" ->
-                    value instanceof Boolean;
-                case "object" ->
-                    true;
-                default ->
-                    true;
+                case "string" -> value instanceof String;
+                case "number" -> value instanceof Number;
+                case "boolean" -> value instanceof Boolean;
+                case "object" -> true;
+                default -> true;
             };
         }
     }

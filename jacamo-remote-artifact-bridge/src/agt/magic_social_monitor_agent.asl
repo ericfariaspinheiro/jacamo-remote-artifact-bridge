@@ -13,7 +13,7 @@ neutralCount(0).
 /* ========= START ========= */
 
 +!start
-   <- .print("Starting JaCaMagic integrated social monitor...");
+   <- .print("Starting JaCaMagic social monitor...");
       joinWorkspace("main", WspId);
 
       lookupArtifact("twitter", TwitterId);
@@ -24,6 +24,7 @@ neutralCount(0).
 
       !reset_state;
       ?currentUser(User);
+      .print("Coletando replies de: ", User);
       collectTweets(User).
 
 /* ========= RESET ========= */
@@ -46,41 +47,45 @@ neutralCount(0).
 
 +tweet(Id, Text, Author, Time, Likes)
    <- +lastTweet(Id, Text, Author, Time, Likes);
-      .print("Tweet analyzed: ", Text).
+      .print("Tweet analisado: ", Text).
 
 +reply(Id, Text, Author, Time, Likes)
    <- +replyData(Id, Text, Author, Time, Likes);
-      .print("Reply ", Id, ": ", Text);
       addReply(Text).
 
 +replies_done
    : replyData(_,_,_,_,_)
-   <- .print("Replies collected.");
-      .print("Starting sentiment analysis...");
+   <- .print("Replies coletadas. Iniciando análise...");
       .wait(2000);
       analyze.
 
 +replies_done
    : not replyData(_,_,_,_,_)
-   <- .print("No replies found for analysis.").
+   <- .print("Nenhuma reply encontrada para análise.").
+
+/* ========= ANALYSIS RESULTS ========= */
+
++analysis_count(Count)
+   <- .print("Total analisado: ", Count).
+
++sentiment_result(Index, Sentiment)
+   <- true.
+
++analysis_done
+   <- .print("");
+      .print("RESULTADO INDIVIDUAL DAS REPLIES");
+      !process_results(1);
+      !print_summary.
 
 /* ========= PROCESS RESULTS ========= */
 
-+analysis_count(Count)
-   <- .print("Analysis count: ", Count).
-
-+analysis_done
-   <- !process_results(1);
-      !print_summary.
-
-+sentiment_result(Index, Sentiment)
-   <- .print("Sentiment result ", Index, ": ", Sentiment).
-
 +!process_results(Index)
-   : sentiment_result(Index, Sentiment) & replyData(Index, Text, _, _, _)
-   <- .print("\n--- Agent Cycle ---");
-      .print("Reply: ", Text);
-      .print("Sentiment: ", Sentiment);
+   : sentiment_result(Index, Sentiment) & replyData(Index, Text, Author, Time, Likes)
+   <- .print("");
+      .print("Reply ", Index, ": ", Text);
+      .print("Autor: ", Author);
+      .print("Likes: ", Likes);
+      .print("Sentimento: ", Sentiment);
       !act(Sentiment);
       !process_results(Index+1).
 
@@ -96,8 +101,7 @@ neutralCount(0).
 +!act("negative")
    <- ?negativeCount(N);
       -negativeCount(N);
-      +negativeCount(N+1);
-      .print("⚠️ Negative reply detected.").
+      +negativeCount(N+1).
 
 +!act("neutral")
    <- ?neutralCount(N);
@@ -107,16 +111,16 @@ neutralCount(0).
 /* ========= REMOTE STATUS ========= */
 
 +magic_ready(ArtifactName)
-   <- .print("JaCaMagic artifact ready: ", ArtifactName).
+   <- true.
 
 +magic_error(Message)
    <- .print("JaCaMagic error: ", Message).
 
 +remote_started(CallId, Operation)
-   <- .print("Remote operation started: ", Operation, " / callId: ", CallId).
+   <- true.
 
 +remote_done(CallId)
-   <- .print("Remote operation finished. callId: ", CallId).
+   <- true.
 
 +remote_error(CallId, Code, Message)
    <- .print("Remote error: ", Code, " - ", Message, " / callId: ", CallId).
@@ -124,7 +128,8 @@ neutralCount(0).
 /* ========= SUMMARY ========= */
 
 +!print_summary
-   <- .print("\nRESUMO FINAL");
+   <- .print("");
+      .print("RESUMO FINAL");
       ?positiveCount(P);
       ?negativeCount(N);
       ?neutralCount(U);
