@@ -1,0 +1,22 @@
+{
+  "type": "artifact_manifest",
+  "artifact": "EchoArtifact",
+  "operations": [
+    {
+      "name": "echo",
+      "args": [
+        {
+          "name": "message",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "signals": [
+    {
+      "name": "echo_result",
+      "args": ["string"]
+    }
+  ],
+  "observableProperties": []
+}

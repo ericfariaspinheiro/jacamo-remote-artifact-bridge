@@ -6,8 +6,9 @@ import { EchoArtifact } from "./artifacts/EchoArtifact.js"
 import { SentimentArtifact } from "./artifacts/SentimentArtifact.js"
 import { TwitterArtifact } from "./artifacts/TwitterArtifact.js"
 
+import { getManifestForArtifact } from "./manifestRegistry.js"
+
 import type {
-  ArtifactManifestMessage,
   IncomingMessage,
   OperationRequest,
   OutgoingMessage,
@@ -33,7 +34,7 @@ server.on("connection", socket => {
       const message = JSON.parse(raw.toString()) as IncomingMessage
 
       if (message.type === "runtime_hello") {
-        const manifest = createManifestForArtifact(message.artifact)
+        const manifest = getManifestForArtifact(message.artifact)
         socket.send(JSON.stringify(manifest))
         return
       }
@@ -122,124 +123,4 @@ async function dispatch(message: OperationRequest): Promise<OutgoingMessage[]> {
   }
 
   throw new Error(`Unknown artifact: ${message.artifact}`)
-}
-
-function createEchoManifest(): ArtifactManifestMessage {
-  return {
-    type: "artifact_manifest",
-    artifact: "EchoArtifact",
-    operations: [
-      {
-        name: "echo",
-        args: [
-          {
-            name: "message",
-            type: "string",
-          },
-        ],
-      },
-    ],
-    signals: [
-      {
-        name: "echo_result",
-        args: ["string"],
-      },
-    ],
-    observableProperties: [],
-  }
-}
-
-function createSentimentManifest(): ArtifactManifestMessage {
-  return {
-    type: "artifact_manifest",
-    artifact: "SentimentArtifact",
-    operations: [
-      {
-        name: "clearReplies",
-        args: [],
-      },
-      {
-        name: "clearResults",
-        args: [],
-      },
-      {
-        name: "addReply",
-        args: [
-          {
-            name: "text",
-            type: "string",
-          },
-        ],
-      },
-      {
-        name: "analyze",
-        args: [],
-      },
-    ],
-    signals: [
-      {
-        name: "analysis_done",
-        args: [],
-      },
-    ],
-    observableProperties: [
-      {
-        name: "analysis_count",
-        args: ["number"],
-      },
-      {
-        name: "sentiment_result",
-        args: ["number", "string"],
-      },
-    ],
-  }
-}
-
-function createTwitterManifest(): ArtifactManifestMessage {
-  return {
-    type: "artifact_manifest",
-    artifact: "TwitterArtifact",
-    operations: [
-      {
-        name: "collectTweets",
-        args: [
-          {
-            name: "username",
-            type: "string",
-          },
-        ],
-      },
-    ],
-    signals: [
-      {
-        name: "tweet",
-        args: ["string", "string", "string", "string", "number"],
-      },
-      {
-        name: "reply",
-        args: ["number", "string", "string", "string", "number"],
-      },
-      {
-        name: "replies_done",
-        args: [],
-      },
-    ],
-    observableProperties: [],
-  }
-}
-
-function createManifestForArtifact(artifact: string): ArtifactManifestMessage {
-  if (artifact === "EchoArtifact") {
-    return createEchoManifest()
-  }
-
-  if (artifact === "SentimentArtifact") {
-    return createSentimentManifest()
-  }
-
-  if (artifact === "TwitterArtifact") {
-    return createTwitterManifest()
-  }
-
-  throw new Error(`Unknown artifact manifest: ${artifact}`)
 }

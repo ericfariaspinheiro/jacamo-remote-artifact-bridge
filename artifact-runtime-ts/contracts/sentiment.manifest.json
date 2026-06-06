@@ -1,0 +1,43 @@
+{
+  "type": "artifact_manifest",
+  "artifact": "SentimentArtifact",
+  "operations": [
+    {
+      "name": "clearReplies",
+      "args": []
+    },
+    {
+      "name": "clearResults",
+      "args": []
+    },
+    {
+      "name": "addReply",
+      "args": [
+        {
+          "name": "text",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "analyze",
+      "args": []
+    }
+  ],
+  "signals": [
+    {
+      "name": "analysis_done",
+      "args": []
+    }
+  ],
+  "observableProperties": [
+    {
+      "name": "analysis_count",
+      "args": ["number"]
+    },
+    {
+      "name": "sentiment_result",
+      "args": ["number", "string"]
+    }
+  ]
+}
