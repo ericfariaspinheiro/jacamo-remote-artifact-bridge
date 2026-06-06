@@ -21,14 +21,31 @@ public class MagicArtifact extends Artifact {
     private String remoteArtifactName;
     private final AtomicInteger callCounter = new AtomicInteger(0);
     private CompletableFuture<JSONObject> manifestFuture;
+    private String requestedArtifactName;
 
     void init(String host, int port) {
+        init(host, port, "EchoArtifact");
+    }
+
+    void init(String host, int port, String artifactName) {
         System.out.println("JaCaMagic: MagicArtifact initialized");
+        System.out.println("JaCaMagic: requested remote artifact: " + artifactName);
         System.out.println("JaCaMagic: connecting to ws://" + host + ":" + port);
+
+        requestedArtifactName = artifactName;
 
         JSONObject manifest = connectAndLoadManifest(host, port);
 
         remoteArtifactName = manifest.getString("artifact");
+
+        if (!requestedArtifactName.equals(remoteArtifactName)) {
+            throw new RuntimeException(
+                    "Manifest artifact mismatch. Requested "
+                    + requestedArtifactName
+                    + " but received "
+                    + remoteArtifactName
+            );
+        }
 
         JSONArray operations = manifest.optJSONArray("operations");
 
@@ -43,10 +60,10 @@ public class MagicArtifact extends Artifact {
 
         System.out.println(
                 "JaCaMagic: manifest loaded for artifact "
-                        + remoteArtifactName
-                        + " with "
-                        + operations.length()
-                        + " operation(s)"
+                + remoteArtifactName
+                + " with "
+                + operations.length()
+                + " operation(s)"
         );
 
         signal("magic_ready", remoteArtifactName);
@@ -95,8 +112,8 @@ public class MagicArtifact extends Artifact {
                                                 "unknown",
                                                 "websocket_error",
                                                 error.getMessage() != null
-                                                        ? error.getMessage()
-                                                        : "Unknown WebSocket error"
+                                                ? error.getMessage()
+                                                : "Unknown WebSocket error"
                                         ).toString()
                                 );
                             }
@@ -141,10 +158,14 @@ public class MagicArtifact extends Artifact {
         JSONObject hello = new JSONObject();
         hello.put("type", "runtime_hello");
         hello.put("protocolVersion", "1.0");
+        hello.put("artifact", requestedArtifactName);
 
         webSocket.sendText(hello.toString(), true);
 
-        System.out.println("JaCaMagic: runtime_hello sent");
+        System.out.println(
+                "JaCaMagic: runtime_hello sent for artifact "
+                + requestedArtifactName
+        );
     }
 
     private void handleRawWebSocketMessage(String rawMessage) {
@@ -168,8 +189,8 @@ public class MagicArtifact extends Artifact {
                             "unknown",
                             "invalid_message",
                             error.getMessage() != null
-                                    ? error.getMessage()
-                                    : "Invalid remote message"
+                            ? error.getMessage()
+                            : "Invalid remote message"
                     ).toString()
             );
         }
@@ -185,9 +206,9 @@ public class MagicArtifact extends Artifact {
 
         System.out.println(
                 "JaCaMagic: dynamic operation registered from remote manifest: "
-                        + operationName
-                        + "/"
-                        + arity
+                + operationName
+                + "/"
+                + arity
         );
     }
 
@@ -222,36 +243,42 @@ public class MagicArtifact extends Artifact {
             String type = message.getString("type");
 
             switch (type) {
-                case "signal" -> emitSignal(message);
+                case "signal" ->
+                    emitSignal(message);
 
-                case "observable_property" -> defineObservableProperty(message);
+                case "observable_property" ->
+                    defineObservableProperty(message);
 
-                case "clear_observable_properties" -> clearObservableProperties(message);
+                case "clear_observable_properties" ->
+                    clearObservableProperties(message);
 
-                case "done" -> signal(
-                        "remote_done",
-                        message.optString("callId", "unknown")
-                );
+                case "done" ->
+                    signal(
+                            "remote_done",
+                            message.optString("callId", "unknown")
+                    );
 
-                case "error" -> signal(
-                        "remote_error",
-                        message.optString("callId", "unknown"),
-                        message.optString("code", "runtime_error"),
-                        message.optString("message", "Unknown error")
-                );
+                case "error" ->
+                    signal(
+                            "remote_error",
+                            message.optString("callId", "unknown"),
+                            message.optString("code", "runtime_error"),
+                            message.optString("message", "Unknown error")
+                    );
 
-                default -> signal(
-                        "magic_error",
-                        "unknown remote message type: " + type
-                );
+                default ->
+                    signal(
+                            "magic_error",
+                            "unknown remote message type: " + type
+                    );
             }
 
         } catch (Exception error) {
             signal(
                     "magic_error",
                     error.getMessage() != null
-                            ? error.getMessage()
-                            : "Invalid remote message"
+                    ? error.getMessage()
+                    : "Invalid remote message"
             );
         }
     }
@@ -350,9 +377,9 @@ public class MagicArtifact extends Artifact {
 
             System.out.println(
                     "JaCaMagic: remote dynamic operation "
-                            + operationName
-                            + " called with "
-                            + namedArgs
+                    + operationName
+                    + " called with "
+                    + namedArgs
             );
 
             invokeRemote(operationName, namedArgs);
@@ -377,13 +404,13 @@ public class MagicArtifact extends Artifact {
                     signal(
                             "magic_error",
                             "invalid argument type for "
-                                    + operationName
-                                    + "."
-                                    + argName
-                                    + ": expected "
-                                    + argType
-                                    + ", got "
-                                    + value.getClass().getSimpleName()
+                            + operationName
+                            + "."
+                            + argName
+                            + ": expected "
+                            + argType
+                            + ", got "
+                            + value.getClass().getSimpleName()
                     );
                     continue;
                 }
@@ -396,11 +423,16 @@ public class MagicArtifact extends Artifact {
 
         private boolean isValidType(Object value, String expectedType) {
             return switch (expectedType) {
-                case "string" -> value instanceof String;
-                case "number" -> value instanceof Number;
-                case "boolean" -> value instanceof Boolean;
-                case "object" -> true;
-                default -> true;
+                case "string" ->
+                    value instanceof String;
+                case "number" ->
+                    value instanceof Number;
+                case "boolean" ->
+                    value instanceof Boolean;
+                case "object" ->
+                    true;
+                default ->
+                    true;
             };
         }
     }

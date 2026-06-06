@@ -33,7 +33,7 @@ server.on("connection", socket => {
       const message = JSON.parse(raw.toString()) as IncomingMessage
 
       if (message.type === "runtime_hello") {
-        const manifest = createTwitterManifest()
+        const manifest = createManifestForArtifact(message.artifact)
         socket.send(JSON.stringify(manifest))
         return
       }
@@ -65,31 +65,6 @@ server.on("connection", socket => {
     console.log("JaCaMagic artifact disconnected")
   })
 })
-
-function createEchoManifest(): ArtifactManifestMessage {
-  return {
-    type: "artifact_manifest",
-    artifact: "EchoArtifact",
-    operations: [
-      {
-        name: "echo",
-        args: [
-          {
-            name: "message",
-            type: "string",
-          },
-        ],
-      },
-    ],
-    signals: [
-      {
-        name: "echo_result",
-        args: ["string"],
-      },
-    ],
-    observableProperties: [],
-  }
-}
 
 async function dispatch(message: OperationRequest): Promise<OutgoingMessage[]> {
   if (message.artifact === "EchoArtifact") {
@@ -147,6 +122,31 @@ async function dispatch(message: OperationRequest): Promise<OutgoingMessage[]> {
   }
 
   throw new Error(`Unknown artifact: ${message.artifact}`)
+}
+
+function createEchoManifest(): ArtifactManifestMessage {
+  return {
+    type: "artifact_manifest",
+    artifact: "EchoArtifact",
+    operations: [
+      {
+        name: "echo",
+        args: [
+          {
+            name: "message",
+            type: "string",
+          },
+        ],
+      },
+    ],
+    signals: [
+      {
+        name: "echo_result",
+        args: ["string"],
+      },
+    ],
+    observableProperties: [],
+  }
 }
 
 function createSentimentManifest(): ArtifactManifestMessage {
@@ -226,4 +226,20 @@ function createTwitterManifest(): ArtifactManifestMessage {
     ],
     observableProperties: [],
   }
+}
+
+function createManifestForArtifact(artifact: string): ArtifactManifestMessage {
+  if (artifact === "EchoArtifact") {
+    return createEchoManifest()
+  }
+
+  if (artifact === "SentimentArtifact") {
+    return createSentimentManifest()
+  }
+
+  if (artifact === "TwitterArtifact") {
+    return createTwitterManifest()
+  }
+
+  throw new Error(`Unknown artifact manifest: ${artifact}`)
 }

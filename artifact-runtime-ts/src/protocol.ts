@@ -1,6 +1,7 @@
 export type RuntimeHelloMessage = {
   type: "runtime_hello"
   protocolVersion: string
+  artifact: string
 }
 
 export type OperationRequest = {
