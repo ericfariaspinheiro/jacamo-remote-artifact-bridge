@@ -8,7 +8,6 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const manifestFilesByArtifact: Record<string, string> = {
-  EchoArtifact: "echo.manifest.json",
   SentimentArtifact: "sentiment.manifest.json",
   TwitterArtifact: "twitter.manifest.json",
 }

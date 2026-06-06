@@ -2,7 +2,6 @@ import "dotenv/config"
 
 import { WebSocketServer } from "ws"
 
-import { EchoArtifact } from "./artifacts/EchoArtifact.js"
 import { SentimentArtifact } from "./artifacts/SentimentArtifact.js"
 import { TwitterArtifact } from "./artifacts/TwitterArtifact.js"
 
@@ -18,7 +17,6 @@ const PORT = 8080
 
 const server = new WebSocketServer({ port: PORT })
 
-const echoArtifact = new EchoArtifact()
 const sentimentArtifact = new SentimentArtifact()
 const twitterArtifact = new TwitterArtifact()
 
@@ -68,20 +66,6 @@ server.on("connection", socket => {
 })
 
 async function dispatch(message: OperationRequest): Promise<OutgoingMessage[]> {
-  if (message.artifact === "EchoArtifact") {
-    if (message.operation !== "echo") {
-      throw new Error(`Unknown EchoArtifact operation: ${message.operation}`)
-    }
-
-    const text = message.args.message
-
-    if (typeof text !== "string") {
-      throw new Error("Argument 'message' must be a string")
-    }
-
-    return echoArtifact.echo(message.callId, text)
-  }
-
   if (message.artifact === "SentimentArtifact") {
     if (message.operation === "clearReplies") {
       return sentimentArtifact.clearReplies(message.callId)
