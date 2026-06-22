@@ -1,0 +1,115 @@
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+
+> Task :run
+Runtime Services (RTS) is running at 192.168.0.74:64307
+Agent mind inspector is running at http://192.168.0.74:3272
+CArtAgO Http Server running on http://192.168.0.74:3273
+[Cartago] Workspace main created.
+JaCaMagic: SentimentArtifact ready with 4 operation(s)
+[Cartago] artifact sentiment: env.MagicArtifact("localhost",8080,"SentimentArtifact") at main created.
+[Cartago] artifact twitter: env.MagicArtifact("localhost",8080,"TwitterArtifact") at main created.
+JaCaMagic: TwitterArtifact ready with 1 operation(s)
+[magic_social_monitor_agent] Starting JaCaMagic social monitor...
+[magic_social_monitor_agent] Coletando replies de: lulaoficial
+[magic_social_monitor_agent] Tweet analisado: O Governo do Brasil fortalece a proteção, o acolhimento e a Justiça para as mulheres brasileiras com o Pacto Nacional Brasil Contra o Feminicídio. Avançamos muito. E não vamos recuar.
+[magic_social_monitor_agent] Replies coletadas. Iniciando análise...
+[magic_social_monitor_agent] Total analisado: 18
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] RESULTADO INDIVIDUAL DAS REPLIES
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 1: O Governo do Brasil fortalece a proteção, o acolhimento e a Justiça para as mulheres brasileiras com o Pacto Nacional Brasil Contra o Feminicídio. Avançamos muito. E não vamos recuar.
+[magic_social_monitor_agent] Autor: LulaOficial
+[magic_social_monitor_agent] Likes: 268
+[magic_social_monitor_agent] Sentimento: positive
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 2: Oh nice
+[magic_social_monitor_agent] Autor: Oluchi02v2
+[magic_social_monitor_agent] Likes: 0
+[magic_social_monitor_agent] Sentimento: positive
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 3: 🤣🤣🤣🥳🥳🥳🥳🥳🥳
+[magic_social_monitor_agent] Autor: sophiezb
+[magic_social_monitor_agent] Likes: 0
+[magic_social_monitor_agent] Sentimento: positive
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 4: Abelardo ganou 😂
+[magic_social_monitor_agent] Autor: 7anticomunista_
+[magic_social_monitor_agent] Likes: 1
+[magic_social_monitor_agent] Sentimento: neutral
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 5: Ladrãoooooo, Chefe de quadrilha, Descondenado e eleito pelo STF e TSE 's da vida. É 13 É PT É ladrão reeleito 2026 segundo turno de la-pa-da.
+[magic_social_monitor_agent] Autor: prv7177
+[magic_social_monitor_agent] Likes: 0
+[magic_social_monitor_agent] Sentimento: negative
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 6: Lula é muito mais sujo do que eu diz Jaques Wagner 😂😭🤣 PTMASTER
+[magic_social_monitor_agent] Autor: DeChapeu6334
+[magic_social_monitor_agent] Likes: 1
+[magic_social_monitor_agent] Sentimento: negative
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 7: Manda outra que essa ai ninguém acredita
+[magic_social_monitor_agent] Autor: RonaldBeraldo
+[magic_social_monitor_agent] Likes: 0
+[magic_social_monitor_agent] Sentimento: negative
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 8: Aliás, ver político ovacionando jogador de futebol não é amor ao Brasil, é estratégia política.
+[magic_social_monitor_agent] Autor: lucianodamissao
+[magic_social_monitor_agent] Likes: 1
+[magic_social_monitor_agent] Sentimento: negative
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 9: GRACAS A DEUS LULA NAO E DE ESQUERDA NE? 🤣🤣🤣🤣🤣🤣
+[magic_social_monitor_agent] Autor: ClaudiaPoliSant
+[magic_social_monitor_agent] Likes: 1
+[magic_social_monitor_agent] Sentimento: negative
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 10: A surra no presidiário que confessou que espanca mulheres
+[magic_social_monitor_agent] Autor: rodrigodba1024
+[magic_social_monitor_agent] Likes: 0
+[magic_social_monitor_agent] Sentimento: negative
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 11: Dê boas vindas ao novo presidente da Colômbia, seja educado e diplomático!
+[magic_social_monitor_agent] Autor: Biricutico79
+[magic_social_monitor_agent] Likes: 1
+[magic_social_monitor_agent] Sentimento: neutral
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 12: Muito bom, Presidente Lula ❤️
+[magic_social_monitor_agent] Autor: madrodz_
+[magic_social_monitor_agent] Likes: 0
+[magic_social_monitor_agent] Sentimento: positive
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 13: Vagabundo ! Protetor de criminosos ! Precisou um outro país pegar pesado com os seus amigos do PCC e CV e outras facções para enquadrar como terroristas ! Uma vergonha ! Deviam mudar para as favelas do Rio junto com o STF pra ficar pertinho dessa cambada
+[magic_social_monitor_agent] Autor: vx20713279
+[magic_social_monitor_agent] Likes: 1
+[magic_social_monitor_agent] Sentimento: negative
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 14: Avançamos muito? Aonde? Só se for no número de feminicídios, esses sim, aumentaram bastante! Batemos até recorde!! "Brasil registra recorde de feminicídios em 2025"
+[magic_social_monitor_agent] Autor: tho26646
+[magic_social_monitor_agent] Likes: 0
+[magic_social_monitor_agent] Sentimento: negative
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 15: Lula de primeira
+[magic_social_monitor_agent] Autor: resistente20225
+[magic_social_monitor_agent] Likes: 0
+[magic_social_monitor_agent] Sentimento: positive
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 16: O governo diz que avançou muito, mas o país fecha o ano com recorde de feminicídios. Se isso é avanço, imagina retrocesso.
+[magic_social_monitor_agent] Autor: SbJanne
+[magic_social_monitor_agent] Likes: 1
+[magic_social_monitor_agent] Sentimento: negative
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 17: Faz o L
+[magic_social_monitor_agent] Autor: LeviCosta181983
+[magic_social_monitor_agent] Likes: 0
+[magic_social_monitor_agent] Sentimento: negative
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 18: Criminoso!
+[magic_social_monitor_agent] Autor: isentonio
+[magic_social_monitor_agent] Likes: 1
+[magic_social_monitor_agent] Sentimento: positive
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] RESUMO FINAL
+[magic_social_monitor_agent] Positivos: 6
+[magic_social_monitor_agent] Negativos: 10
+[magic_social_monitor_agent] Neutros: 2

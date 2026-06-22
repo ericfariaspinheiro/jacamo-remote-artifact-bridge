@@ -1,0 +1,71 @@
+Starting a Gradle Daemon (subsequent builds will be faster)
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+
+> Task :run
+Runtime Services (RTS) is running at 192.168.0.74:64226
+Agent mind inspector is running at http://192.168.0.74:3272
+CArtAgO Http Server running on http://192.168.0.74:3273
+[Cartago] Workspace main created.
+JaCaMagic: SentimentArtifact ready with 4 operation(s)
+[Cartago] artifact sentiment: env.MagicArtifact("localhost",8080,"SentimentArtifact") at main created.
+JaCaMagic: TwitterArtifact ready with 1 operation(s)
+[Cartago] artifact twitter: env.MagicArtifact("localhost",8080,"TwitterArtifact") at main created.
+[magic_social_monitor_agent] Starting JaCaMagic social monitor...
+[magic_social_monitor_agent] Coletando replies de: lulaoficial
+[magic_social_monitor_agent] Tweet analisado: O Governo do Brasil fortalece a proteção, o acolhimento e a Justiça para as mulheres brasileiras com o Pacto Nacional Brasil Contra o Feminicídio. Avançamos muito. E não vamos recuar.
+[magic_social_monitor_agent] Replies coletadas. Iniciando análise...
+[magic_social_monitor_agent] Total analisado: 9
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] RESULTADO INDIVIDUAL DAS REPLIES
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 1: O Governo do Brasil fortalece a proteção, o acolhimento e a Justiça para as mulheres brasileiras com o Pacto Nacional Brasil Contra o Feminicídio. Avançamos muito. E não vamos recuar.
+[magic_social_monitor_agent] Autor: LulaOficial
+[magic_social_monitor_agent] Likes: 131
+[magic_social_monitor_agent] Sentimento: positive
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 2: Avançamos muito? Aonde? Só se for no número de feminicídios, esses sim, aumentaram bastante! Batemos até recorde!! "Brasil registra recorde de feminicídios em 2025"
+[magic_social_monitor_agent] Autor: tho26646
+[magic_social_monitor_agent] Likes: 0
+[magic_social_monitor_agent] Sentimento: negative
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 3: Pra cima deles!!!
+[magic_social_monitor_agent] Autor: Arce_Maffei
+[magic_social_monitor_agent] Likes: 0
+[magic_social_monitor_agent] Sentimento: positive
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 4: Lula de primeira
+[magic_social_monitor_agent] Autor: resistente20225
+[magic_social_monitor_agent] Likes: 0
+[magic_social_monitor_agent] Sentimento: positive
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 5: O governo diz que avançou muito, mas o país fecha o ano com recorde de feminicídios. Se isso é avanço, imagina retrocesso.
+[magic_social_monitor_agent] Autor: SbJanne
+[magic_social_monitor_agent] Likes: 0
+[magic_social_monitor_agent] Sentimento: negative
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 6: Faz o L
+[magic_social_monitor_agent] Autor: LeviCosta181983
+[magic_social_monitor_agent] Likes: 0
+[magic_social_monitor_agent] Sentimento: positive
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 7: Criminoso!
+[magic_social_monitor_agent] Autor: isentonio
+[magic_social_monitor_agent] Likes: 1
+[magic_social_monitor_agent] Sentimento: negative
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 8: Grande Lula 🇧🇷🥰Presidente amado 🥰🇧🇷🇧🇷 #Lula2026
+[magic_social_monitor_agent] Autor: 1SomosNos
+[magic_social_monitor_agent] Likes: 0
+[magic_social_monitor_agent] Sentimento: positive
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] Reply 9: Avançaram como se o feminicidio aumentou no seu governo?
+[magic_social_monitor_agent] Autor: odouglasbrasil
+[magic_social_monitor_agent] Likes: 1
+[magic_social_monitor_agent] Sentimento: negative
+[magic_social_monitor_agent] 
+[magic_social_monitor_agent] RESUMO FINAL
+[magic_social_monitor_agent] Positivos: 5
+[magic_social_monitor_agent] Negativos: 4
+[magic_social_monitor_agent] Neutros: 0

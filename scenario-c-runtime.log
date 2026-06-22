@@ -1,0 +1,9 @@
+
+> artifact-runtime-ts@0.1.0 dev
+> tsx src/server.ts
+
+Artifact runtime listening on ws://localhost:8080
+JaCaMagic artifact connected
+JaCaMagic artifact connected
+JaCaMagic artifact disconnected
+JaCaMagic artifact disconnected
